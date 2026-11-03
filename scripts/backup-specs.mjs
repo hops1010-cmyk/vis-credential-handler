@@ -47,7 +47,6 @@ function run(args) {
     windowsHide: true,
     env: {
       ...process.env,
-      WRANGLER_LOG: "error",
       WRANGLER_WRITE_LOGS: "false",
     },
   });
