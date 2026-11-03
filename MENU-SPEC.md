@@ -3,10 +3,11 @@
 Pete's app menu branches, recorded for later implementation:
 
 ```text
-File | Edit | Settings |
+File | Edit | Secrets | Settings |
 
 file -new -open -save -delete -exit
 edit -cut -copy -paste
+menu -secrets --password
 settings -vaultskin -configuration
 ```
 
@@ -14,6 +15,7 @@ Here File/Edit/Settings are categories in the direct form; each single-dash item
 
 - File: New/Open/Save/Delete/Exit; exact edited object scope remains a Design decision. Do not infer live credential deletion or rotation from the label alone.
 - Edit: Cut/Copy/Paste for selected editable fields. Sensitive fields require deliberate clipboard handling with current grant checks; no default display, logging or broad clipboard scraping. Browser clipboard capability/permission may require user interaction. Do not promise erasure from OS clipboard history or other apps. Paste accepts only the expected field data; never evaluates commands or code.
+- Secrets → Password: Pete specified `menu -secrets --password`; menu is the category, Secrets the main branch and Password its first-level sub-branch. This establishes the menu destination only. Password create/view/edit/reveal behaviour and permissions remain to specify; adding the branch does not reveal, generate or persist a password. No password value belongs in this specification.
 - Settings → vaultskin: selects the vault's appearance, following VISTAMATIONS skin tokens. Visual concealment or changing a skin does not change permissions or underlying secret storage.
 - Settings → configuration: opens named connector/permission/session/backup settings once designed. Public-safe config can be versioned/backed up; credential values remain in verified private storage. Profile/app/global configuration scope must be explicit.
 
