@@ -1,6 +1,6 @@
 # vis-credential-handler
 
-VISTAMATIONS vault application. Named handler: **Madeline** (Pete's assignment). The vault itself handles credentials; “broker” is a description of that function, not another service or agent.
+VISTAMATIONS vault application. Pete's later clarification establishes **two vaults**: this new app entry is **Cody's vault**; Madeline's existing vault is https://vistamations.com/vault. This supersedes the earlier assignment of Madeline as handler of this new entry. The vault itself handles credentials; “broker” is a description of that function, not another service or agent.
 
 Current phase: **Entry / Plan**. This repository contains specifications and a plan, not a functioning vault. No credentials, PINs, service connections or access policies are provisioned here.
 
@@ -9,6 +9,7 @@ Purpose: reduce repeated agent authentication work through private PIN approval 
 - [Plan](PLAN.md)
 - [Configuration and backup specification](SPEC.md)
 - [File, Edit and Settings menu specification](MENU-SPEC.md)
+- [Read-only live-vault flow findings and ownership clarification](VAULT-FLOW-FINDINGS.md)
 
 Requested targets: Git, Vistamations web, localhost and versioned non-secret config/spec backups indexed in D1. Exact web path, local port and D1 database remain to verify. No deployment/backup is claimed. Protect existing localhost applications, especially port 3000.
 
