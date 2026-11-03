@@ -1,4 +1,5 @@
 import { celebrate } from "./motion.js";
+const base = location.pathname.startsWith("/cody-vault") ? "/cody-vault" : "";
 const $ = (s) => document.querySelector(s);
 const titles = [
   "A separate vault",
@@ -35,7 +36,7 @@ const message = (t) => {
   $("#message").textContent = t;
 };
 async function api(path, body) {
-  const r = await fetch("/api/" + path, {
+  const r = await fetch(base + "/api/" + path, {
     method: body === undefined ? "GET" : "POST",
     headers: body === undefined ? {} : { "content-type": "application/json" },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -103,6 +104,10 @@ function button(text, fn, cls = "") {
   return b;
 }
 function render() {
+  const green = document.getElementById("greenZone");
+  if (green) green.hidden = step !== "vault";
+  const tools = document.getElementById("dashboardTools");
+  if (tools) tools.hidden = step !== "vault";
   if (widgetId !== null && window.turnstile) {
     turnstile.remove(widgetId);
     widgetId = null;
@@ -127,13 +132,27 @@ function render() {
     $("#steps").append(li);
   });
   $("#connection").textContent =
-    "LOCAL · " + (step === "vault" ? "UNLOCKED" : "LOCKED");
+    (state.remote ? "WEB · " : "LOCAL · ") +
+    (step === "vault" ? "UNLOCKED" : "LOCKED");
   $("#footerStatus").textContent =
     step === "vault"
       ? "PRIVATE SESSION · 15 MINUTES"
       : "LOCKED / NO PIN VALUES DISPLAYED";
   if (step === "vault") {
     renderVault();
+    loadNote();
+    return;
+  }
+  if (step === "remote-locked") {
+    heading(
+      "Green Zone is locked.",
+      "Complete the wizard in your local vault. Its one-use handoff opens an approved web session here.",
+    );
+    const link = document.createElement("a");
+    link.href = "http://localhost:3215/";
+    link.target = "_top";
+    link.textContent = "Open local vault";
+    $("#wizard").append(link);
     return;
   }
   if (step === 1) {
@@ -281,7 +300,7 @@ function render() {
       row.className = "challenge-item";
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       const use = document.createElementNS(svg.namespaceURI, "use");
-      use.setAttribute("href", "/symbols.svg#" + name);
+      use.setAttribute("href", base + "/symbols.svg#" + name);
       svg.append(use);
       svg.setAttribute("aria-hidden", "true");
       const wrap = document.createElement("span");
@@ -422,11 +441,20 @@ function showCodeForm() {
       );
       button("Enter Cody’s vault", async () => {
         if (!verificationReady) throw Error("Verification required.");
-        await api("finish", {});
+        const finished = await api("finish", {});
         verificationReady = false;
         step = "vault";
         render();
         celebrate(skin);
+        if (finished.handoffUrl)
+          setTimeout(() => {
+            if (window.parent !== window)
+              window.parent.postMessage(
+                { type: "cody-vault-handoff", url: finished.handoffUrl },
+                location.origin,
+              );
+            else location.assign(finished.handoffUrl);
+          }, 1400);
       });
     },
   );
@@ -601,10 +629,94 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape")
     document.querySelectorAll("nav details").forEach((d) => (d.open = false));
 });
+async function loadNote() {
+  if (step !== "vault") return;
+  try {
+    const dashboard = $("#noteDashboard").value;
+    const saved = await api("notes?dashboard=" + encodeURIComponent(dashboard));
+    if (step === "vault" && $("#noteDashboard").value === dashboard)
+      $("#noteText").value = saved.text;
+  } catch (e) {
+    message(e.message);
+  }
+  $("#chatConnection").textContent = state.chatReady
+    ? " Connected"
+    : " Model connection not configured";
+}
+$("#noteDashboard").onchange = loadNote;
+$("#saveNote").onclick = () =>
+  run(async () => {
+    await api("notes/save", {
+      dashboard: $("#noteDashboard").value,
+      text: $("#noteText").value,
+    });
+    message("Dashboard note saved encrypted.");
+  });
+$("#exitForm").onsubmit = (event) => {
+  event.preventDefault();
+  run(async () => {
+    try {
+      await api("exit", { pin: $("#exitPin").value });
+      $("#chatMessages").replaceChildren();
+      $("#chatInput").value = "";
+      $("#noteText").value = "";
+      selectedId = null;
+      verificationReady = false;
+      lastField = null;
+      location.reload();
+    } finally {
+      $("#exitPin").value = "";
+    }
+  });
+};
+$("#chatForm").onsubmit = (event) => {
+  event.preventDefault();
+  run(async () => {
+    const text = $("#chatInput").value.trim();
+    if (!text) return;
+    const line = document.createElement("div");
+    line.className = "chat-line";
+    line.textContent = "You: " + text;
+    $("#chatMessages").append(line);
+    $("#chatInput").value = "";
+    try {
+      const answer = await api("chat", { message: text });
+      const reply = document.createElement("div");
+      reply.className = "chat-line";
+      reply.textContent = "Cody: " + answer.reply;
+      $("#chatMessages").append(reply);
+    } catch (e) {
+      message(e.message);
+    }
+  });
+};
+$("#captureView").onclick = () =>
+  run(async () => {
+    const response = await fetch(base + "/browser/capture", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    });
+    if (!response.ok) {
+      const result = await response.json();
+      throw Error(result.error || "Capture unavailable");
+    }
+    const previous = $("#browserPreview").dataset.blob;
+    if (previous) URL.revokeObjectURL(previous);
+    const blob = URL.createObjectURL(await response.blob());
+    $("#browserPreview").src = blob;
+    $("#browserPreview").dataset.blob = blob;
+    $("#browserPreview").hidden = false;
+  });
 try {
+  if (/^#handoff=[a-f0-9]{64}$/.test(location.hash)) {
+    const ticket = location.hash.slice(9);
+    history.replaceState(null, "", location.pathname + location.search);
+    await api("handoff", { ticket });
+  }
   state = await api("status");
   step = state.step;
-  if (step !== "vault" && step !== 1 && !state.sessionActive) {
+  if (!state.remote && step !== "vault" && step !== 1 && !state.sessionActive) {
     await api("session", {});
   }
   $("#integrationStatus").replaceChildren();

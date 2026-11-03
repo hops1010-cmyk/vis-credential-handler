@@ -2,7 +2,7 @@
 
 VISTAMATIONS vault application. Pete's later clarification establishes **two vaults**: this new app entry is **Cody's vault**; Madeline's existing vault is https://vistamations.com/vault. This supersedes the earlier assignment of Madeline as handler of this new entry. The vault itself handles credentials; “broker” is a description of that function, not another service or agent.
 
-Current phase: **Build — local implementation**. Eight-step wizard, encrypted local storage, bounded permission/session flow and skin-matched GSAP celebration are implemented and tested with isolated fixtures. The real PIN/owner setup remains private and unconfigured. Real CAPTCHA provisioning awaits confirmation; real email delivery is not yet verified. Production web deployment and live agent API grants are not implemented.
+Current phase: **Deployed connection, activation pending**. Local and public endpoints are connected through one tunnel and a reverse proxy. Eight-step wizard, encrypted local storage, Green Zone, PIN exit, dashboard notes and skin-matched GSAP celebrations are implemented. Real PIN/owner setup remains private/unconfigured, CAPTCHA provisioning awaits confirmation and real email delivery is unverified; public access stays locked until successful local completion. Chat UI exists but no live model is configured. Agent capability API remains planned.
 
 Purpose: reduce repeated agent authentication work through private PIN approval for a limited session and supported, already-authorized service connections. Preserve actual provider authentication, scope, expiry and revocation. Interactive CAPTCHA/sign-in can hand control to Pete and resume afterward.
 
@@ -13,6 +13,7 @@ Purpose: reduce repeated agent authentication work through private PIN approval 
 - [Build design, wizard and security boundaries](BUILD-DESIGN.md)
 - [Vault base model and Madeline's observed three-step entry pattern](VAULT-BASE-MODEL.md)
 - [Planned backend security and credential-use layer](BACKEND-SECURITY-PLAN.md)
+- [Current two-endpoint deployment, checks and pending activation](DEPLOYMENT.md)
 
 ## Run locally
 
@@ -20,9 +21,9 @@ Requires Node 24+ (tested 24.20.0). `npm ci`, then `npm run provision` initializ
 
 Use `npm test` for isolated backend verification. The browser test additionally uses the installed Tower Playwright package; its exact dependency location is recorded in test/browser-check.mjs. Test email/CAPTCHA adapters never send real messages or grant access in the normal app. `.vault`, test output and the private template reference are excluded from Git.
 
-Normal local server launch was rejected by automatic approval review with “blocked by policy”; no background service is claimed running. Isolated test servers start and close within the tests only. No workaround launch attempted.
+An earlier hidden background launch was rejected. The later explicitly requested connection is now running in a managed foreground supervisor (`node scripts/run-bridge.mjs`) for the local server and its one tunnel. No hidden startup service/reboot persistence was installed. See DEPLOYMENT.md.
 
-Requested targets: Git, Vistamations web, localhost and versioned non-secret config/spec backups indexed in D1. Local build port is 3215 (found free); public path/deployment remain unassigned. D1 specs backup targets the verified existing tower8b-backup database with a namespaced table; report read-back verification separately. Protect existing localhost applications, especially port 3000.
+Endpoints: http://localhost:3215/ and https://www.vistamations.com/cody-vault . Public route is live and locked pending local verification. D1 specs backups target tower8b-backup with a namespaced table and verified read-back; actual credentials/private notes are excluded. Other localhost services, especially port3000, remain protected.
 
 Menu notation clarified by Pete: `menu -file --new` means category menu → main branch File → first-level sub-branch New. Direct form: `file -new -open -save -delete -exit`, where file is the category and each single-dash item is a main branch. Listing branches does not execute all actions. Per-app outcomes must be specified before implementation; these notes do not create a runtime command parser.
 

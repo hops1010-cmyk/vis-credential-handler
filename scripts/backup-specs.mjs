@@ -10,6 +10,7 @@ const names = [
   "SPEC.md",
   "MENU-SPEC.md",
   "BUILD-DESIGN.md",
+  "DEPLOYMENT.md",
 ];
 const docs = Object.fromEntries(
   names.map((n) => [n, fs.readFileSync(path.join(root, n), "utf8")]),
@@ -21,7 +22,7 @@ const payload = JSON.stringify({
   docs,
   configuration: {
     localPort: 3215,
-    publicRoute: null,
+    publicRoute: "https://www.vistamations.com/cody-vault",
     secretStorage: "private local directory; values excluded",
     captchaAction: "vault_login",
   },

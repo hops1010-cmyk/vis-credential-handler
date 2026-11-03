@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 import { RecordStore } from "./lib/store.mjs";
 import { createVault } from "./lib/vault.mjs";
+import { timingSafeEqual } from "node:crypto";
+import { createRequire } from "node:module";
 const root = path.dirname(fileURLToPath(import.meta.url));
 export function sqliteAdapter(db) {
   return {
@@ -112,24 +114,62 @@ export async function startServer({
     captchaSitekey: cfg.turnstileSitekey || "",
     mailReady: !!cfg.cfAccountId && !!cloudflareToken(),
     captchaReady: !!cfg.turnstileSecret,
+    publicOrigin: cfg.publicOrigin || null,
+    capturePage: async () => {
+      const require = createRequire(import.meta.url);
+      const { chromium } = require("playwright");
+      const browser = await chromium.launch({ headless: true });
+      try {
+        const context = await browser.newContext();
+        const page = await context.newPage();
+        await page.goto(origin + "/ui", {
+          waitUntil: "domcontentloaded",
+          timeout: 15000,
+        });
+        return await page.screenshot({ fullPage: false });
+      } finally {
+        await browser.close();
+      }
+    },
     ...testDependencies,
   });
+  const publicHandle = cfg.publicOrigin
+    ? createVault({
+        store,
+        masterKey: cfg.masterKey,
+        origin: cfg.publicOrigin,
+        remote: true,
+        cookiePath: "/cody-vault",
+        sendMail: async () => {
+          throw Error("Use local email verification");
+        },
+        verifyCaptcha: async () => false,
+      })
+    : null;
+  const validBridge = (value) =>
+    typeof value === "string" &&
+    typeof cfg.originAuth === "string" &&
+    Buffer.byteLength(value) === Buffer.byteLength(cfg.originAuth) &&
+    timingSafeEqual(Buffer.from(value), Buffer.from(cfg.originAuth));
   const staticFiles = {
-    "/": "public/index.html",
+    "/": "public/shell.html",
+    "/ui": "public/index.html",
     "/app.js": "public/app.js",
     "/style.css": "public/style.css",
     "/motion.js": "public/motion.js",
     "/gsap.min.js": "node_modules/gsap/dist/gsap.min.js",
     "/symbols.svg": "public/symbols.svg",
+    "/shell.js": "public/shell.js",
+    "/shell.css": "public/shell.css",
   };
   const security = {
     "cache-control": "no-store",
     "x-content-type-options": "nosniff",
     "referrer-policy": "no-referrer",
-    "x-frame-options": "DENY",
+    "x-frame-options": "SAMEORIGIN",
     "permissions-policy": "camera=(), microphone=(), geolocation=()",
     "content-security-policy":
-      "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+      "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'",
   };
   const server = http.createServer(async (req, res) => {
     try {
@@ -139,7 +179,29 @@ export async function startServer({
         return;
       }
       const url = new URL(req.url, origin);
-      if (url.pathname.startsWith("/api/")) {
+      const bridgedHeader = req.headers["x-cody-origin-key"];
+      const bridged = validBridge(bridgedHeader);
+      if (bridgedHeader && !bridged) {
+        res.writeHead(403, security);
+        res.end("Bridge not authorized");
+        return;
+      }
+      if (url.pathname === "/status/health") {
+        res.writeHead(200, { ...security, "content-type": "application/json" });
+        res.end(
+          JSON.stringify({
+            online: true,
+            transport: "one-tunnel",
+            channels: ["interface", "vault-api", "headless", "status"],
+            sessionHistoryStored: false,
+          }),
+        );
+        return;
+      }
+      if (
+        url.pathname.startsWith("/api/") ||
+        url.pathname === "/browser/capture"
+      ) {
         const parts = [];
         let size = 0;
         for await (const chunk of req) {
@@ -151,14 +213,20 @@ export async function startServer({
           }
           parts.push(chunk);
         }
-        const request = new Request(url, {
+        const destination = new URL(
+          (url.pathname === "/browser/capture"
+            ? "/api/browser/capture"
+            : url.pathname) + url.search,
+          bridged ? cfg.publicOrigin : origin,
+        );
+        const request = new Request(destination, {
           method: req.method,
           headers: req.headers,
           ...(req.method === "GET" || req.method === "HEAD"
             ? {}
             : { body: Buffer.concat(parts) }),
         });
-        const response = await handle(request);
+        const response = await (bridged ? publicHandle : handle)(request);
         res.writeHead(response.status, {
           ...security,
           ...Object.fromEntries(response.headers),
@@ -185,11 +253,14 @@ export async function startServer({
             ? "image/svg+xml"
             : "text/javascript";
       res.writeHead(200, { ...security, "content-type": mime });
-      res.end(
-        req.method === "HEAD"
-          ? undefined
-          : fs.readFileSync(path.join(root, relative)),
-      );
+      let contents = fs.readFileSync(path.join(root, relative));
+      if (bridged && relative.endsWith(".html"))
+        contents = Buffer.from(
+          contents
+            .toString("utf8")
+            .replace("<head>", '<head><base href="/cody-vault/">'),
+        );
+      res.end(req.method === "HEAD" ? undefined : contents);
     } catch {
       if (!res.headersSent) res.writeHead(500, security);
       res.end("The action could not complete.");

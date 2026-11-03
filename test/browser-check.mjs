@@ -51,7 +51,7 @@ try {
       reset() {},
     };
   });
-  await page.goto(app.origin);
+  await page.goto(app.origin + "/ui");
   await page.getByRole("button", { name: "Begin private setup" }).waitFor();
   await page.screenshot({
     path: path.join(output, "vault-desktop.png"),
@@ -107,6 +107,12 @@ try {
     .getByRole("button", { name: "Enter Cody’s vault", exact: true })
     .click();
   await page.getByRole("button", { name: "New secret", exact: true }).waitFor();
+  await page.getByLabel("Private note").fill("Synthetic dashboard note");
+  await page.getByRole("button", { name: "Save note", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Capture locked view", exact: true })
+    .click();
+  await page.locator("#browserPreview:not([hidden])").waitFor();
   await page.getByRole("button", { name: "New secret", exact: true }).click();
   await page.getByLabel("Item name").fill("Browser test fixture");
   await page.getByLabel("Secret value").fill("synthetic-isolated-fixture");

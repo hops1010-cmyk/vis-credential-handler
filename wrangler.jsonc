@@ -1,0 +1,27 @@
+{
+  "name": "vis-cody-vault-proxy",
+  "main": "worker/proxy.mjs",
+  "account_id": "a3cfe4297f6a3fedf411ba7e7d6f2751",
+  "compatibility_date": "2026-11-03",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "www.vistamations.com/cody-vault",
+      "zone_name": "vistamations.com",
+    },
+    {
+      "pattern": "www.vistamations.com/cody-vault/*",
+      "zone_name": "vistamations.com",
+    },
+  ],
+  "vpc_services": [
+    {
+      "binding": "CODY_ORIGIN",
+      "service_id": "01a1a2c0-0c00-7771-9fce-0645d6a0134e",
+    },
+  ],
+  "observability": {
+    "enabled": false,
+  },
+}
