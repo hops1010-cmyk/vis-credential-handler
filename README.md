@@ -8,6 +8,7 @@ Purpose: reduce repeated agent authentication work through private PIN approval 
 
 - [Plan](PLAN.md)
 - [Configuration and backup specification](SPEC.md)
+- [File, Edit and Settings menu specification](MENU-SPEC.md)
 
 Requested targets: Git, Vistamations web, localhost and versioned non-secret config/spec backups indexed in D1. Exact web path, local port and D1 database remain to verify. No deployment/backup is claimed. Protect existing localhost applications, especially port 3000.
 
