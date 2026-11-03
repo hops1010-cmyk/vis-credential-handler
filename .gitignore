@@ -9,3 +9,8 @@ credentials/
 node_modules/
 .wrangler/
 *.log
+.vault/
+.design-reference/
+test-output/
+node_modules/
+*.sqlite*

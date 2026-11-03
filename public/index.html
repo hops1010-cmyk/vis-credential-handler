@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VISTAMATIONS · Cody Vault</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/gsap.min.js" defer></script>
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body data-skin="enterprise">
+    <div id="ground">
+      <div id="box">
+        <div id="L1" class="layer"></div>
+        <div id="L2" class="layer mesh"></div>
+        <div id="L3" class="layer brand-ghost">V</div>
+        <svg
+          id="L4"
+          class="layer"
+          aria-hidden="true"
+          viewBox="0 0 1200 800"
+        ></svg>
+        <div id="L5">
+          <header>
+            <a class="wordmark" href="/"
+              >VISTAMATIONS<span>PRIVATE INSTRUMENTS / CODY VAULT</span></a
+            >
+            <div class="identity"><i></i> CODY · SEPARATE VAULT</div>
+          </header>
+          <nav id="menuBar" aria-label="Application menus">
+            <details>
+              <summary>File</summary>
+              <div class="menu">
+                <button data-action="new">New</button
+                ><button data-action="open">Open</button
+                ><button data-action="save">Save</button
+                ><button data-action="delete">Delete</button
+                ><button data-action="exit">Exit / lock</button>
+              </div>
+            </details>
+            <details>
+              <summary>Edit</summary>
+              <div class="menu">
+                <button data-action="cut">Cut</button
+                ><button data-action="copy">Copy</button
+                ><button data-action="paste">Paste</button>
+              </div>
+            </details>
+            <details>
+              <summary>Secrets</summary>
+              <div class="menu">
+                <button data-action="password">Password</button>
+              </div>
+            </details>
+            <details>
+              <summary>Settings</summary>
+              <div class="menu">
+                <button data-action="skin">Vaultskin</button
+                ><button data-action="config">Configuration</button
+                ><button data-action="preview">Preview celebration</button>
+              </div>
+            </details>
+            <span id="connection">LOCAL · PRIVATE SETUP</span>
+          </nav>
+          <main>
+            <aside class="journey panel">
+              <p class="eyebrow">THE ENTRY SEQUENCE</p>
+              <h1>Your keys.<br />Your permission.</h1>
+              <p class="muted">
+                A separate vault for Cody. Madeline's vault and her private PINs
+                remain separate.
+              </p>
+              <ol id="steps"></ol>
+              <div class="local-note">
+                <span class="status-dot"></span
+                ><span
+                  >Secret values stay out of Git.<br />Setup happens in your
+                  browser.</span
+                >
+              </div>
+            </aside>
+            <section id="workspace" class="panel">
+              <div class="workspace-top">
+                <span id="stepLabel" class="eyebrow">STEP 01 / 08</span
+                ><span class="small">VIS CREDENTIAL HANDLER · V1 BUILD</span>
+              </div>
+              <div id="wizard"></div>
+              <p id="message" role="status" aria-live="polite"></p>
+            </section>
+            <aside id="inspector" class="panel">
+              <p class="eyebrow">VAULTSKIN</p>
+              <label for="skin">Appearance</label
+              ><select id="skin">
+                <option value="enterprise">VISTAMATIONS Enterprise</option>
+                <option value="medieval">Medieval</option>
+                <option value="kittens">Agents' Kittens</option>
+                <option value="retro">Retro 70s</option>
+                <option value="space">Space Age</option>
+                <option value="savanna">African Animals</option>
+              </select>
+              <div class="sample-jewel" aria-hidden="true">
+                <svg viewBox="0 0 100 100">
+                  <path
+                    d="M50 8 88 35 74 83 26 83 12 35Z M12 35H88 M50 8 36 35 50 83 64 35Z M26 83 36 35M74 83 64 35"
+                  />
+                </svg>
+              </div>
+              <p class="eyebrow">ONE IMAGE PER POSITION</p>
+              <div class="symbol-strip">
+                <svg><use href="/symbols.svg#dinosaur" /></svg
+                ><svg><use href="/symbols.svg#tower" /></svg
+                ><svg><use href="/symbols.svg#archetype" /></svg
+                ><svg><use href="/symbols.svg#system" /></svg>
+              </div>
+              <p class="muted small">
+                Dinosaur · Tower<br />Archetype · System
+              </p>
+              <button class="secondary" id="previewMotion">
+                Preview skin motion
+              </button>
+              <p class="small muted">
+                Preview is decorative.<br />It does not unlock the vault.
+              </p>
+              <div id="integrationStatus" class="health"></div>
+            </aside>
+          </main>
+          <footer>
+            <span id="footerStatus">LOCKED / NO PIN VALUES DISPLAYED</span
+            ><span>Created by Vistamations Media Division</span>
+          </footer>
+        </div>
+      </div>
+    </div>
+    <dialog id="settingsDialog">
+      <h2>Configuration</h2>
+      <div id="configurationDetails"></div>
+      <p>
+        Local key storage is restricted to this Windows account and SYSTEM.
+        Programs running as the same account can access it. This is a working
+        local build, not audited production isolation.
+      </p>
+      <button id="closeSettings">Close</button>
+    </dialog>
+  </body>
+</html>
