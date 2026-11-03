@@ -12,6 +12,7 @@ Purpose: reduce repeated agent authentication work through private PIN approval 
 - [Read-only live-vault flow findings and ownership clarification](VAULT-FLOW-FINDINGS.md)
 - [Build design, wizard and security boundaries](BUILD-DESIGN.md)
 - [Vault base model and Madeline's observed three-step entry pattern](VAULT-BASE-MODEL.md)
+- [Planned backend security and credential-use layer](BACKEND-SECURITY-PLAN.md)
 
 ## Run locally
 
