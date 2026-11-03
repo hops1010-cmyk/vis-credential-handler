@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.private.*
+secrets/
+credentials/
+node_modules/
+.wrangler/
+*.log
